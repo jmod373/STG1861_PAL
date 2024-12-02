@@ -1,0 +1,69 @@
+/* frame_pal.pld - developed from the original CDP1861 (Pixie) Replacement Frame Timing			*/
+/*									*/
+/*   Copyright (C) 2004 by Robert Armstrong, Milpitas, California.	*/
+/*                                  */
+/* This version has been modified to provide VBLANK and altered timing for */
+/* PAL non-interlaced mode */
+/*									*/
+/*  This program is free software; you can redistribute it and/or	*/
+/* modify it under the terms of the GNU General Public License as	*/
+/* published by the Free Software Foundation; either version 2 of the	*/
+/* License, or (at your option) any later version.			*/
+/*									*/
+/*  This program is distributed in the hope that it will be useful, but	*/
+/* WITHOUT ANY WARRANTY; without even the implied warranty of		*/
+/* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU	*/
+/* General Public License for more details.				*/
+/*									*/
+/*   You should have received a copy of the GNU General Public License	*/
+/* along with this program; if not, write to the Free Software		*/
+/* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 USA.	*/
+/*                                  */
+
+NAME		FRAME_PAL;
+PARTNO		FRAME_PAL;
+REVISION	B1;
+DATE		12/02/24;
+DESIGNER	Robert Armstrong, DJM;
+COMPANY		Spare Time Gizmos;
+ASSEMBLY	STG1861PAL;
+LOCATION	U2;
+DEVICE		G22V10;
+                                                    
+
+/* INPUTS... */
+Pin  1 = !HSYNC;	/* RS-170 horizontal sync pulse from line GAL	*/
+Pin  2 = !RESET;	/* global asynchronous reset			*/
+Pin  [23,3,4,5,6,7,8,9,10] = [LC0,LC1,LC2,LC3,LC4,LC5,LC6,LC7,LC8];
+FIELD LC = [LC0..LC8];
+Pin 11 = DISP_ON; /* Disp on pulse to aid synchronisation 	*/
+Pin 13 = DISP_OFF;	/* disable  video timing chain still runs)	*/
+
+/* OUTPUTS... */
+
+Pin 22 = !VBLANK; /* Vertical blanking signal */
+Pin 21 = DISPLAY_ON_H;   /* OUTPUT OF BOOLEAN SR FLIP FLOP */
+Pin 20 = DISPLAY_ON_L;   /* RESET LEG OF BOOLEAN SR FLIP FLOP */
+Pin 19 = ACTIVE_VIDEO;	/* signal to line GAL to enable video		*/
+Pin 18 = !COMP_SYNC;	/* RS-170 composite sync output to monitor	*/
+Pin 17 = !DISP_STATUS;	/* frame synchronization to CDP1802		*/
+Pin 16 = !INTREQ;	/* interrupt request to CDP1802			*/
+Pin 15 = !VSYNC;		/* RS-170 vertical sync pulses		*/
+Pin 14 = RESET_LC;	/* TRUE to reset 74HC4040 line counter		*/
+
+
+SET_DISPLAY_ON = DISP_ON;
+RESET_DISPLAY_ON = DISP_OFF # RESET;
+DISPLAY_ON_H = SET_DISPLAY_ON # (!DISPLAY_ON_L & !RESET_DISPLAY_ON);
+DISPLAY_ON_L = RESET_DISPLAY_ON # (!DISPLAY_ON_H & !SET_DISPLAY_ON);
+
+/*  VSYNC, INTREQ, DISP_STATUS, ACTIVE_VIDEO, RESET_LC */
+VSYNC = LC:['D'0..'D'3];
+INTREQ = DISPLAY_ON_H & (LC:'D'67 # LC:'D'68);
+DISP_STATUS = LC:['D'65..'D'68] # LC:['D'259..'D'262];
+ACTIVE_VIDEO = DISPLAY_ON_H & !(LC:['D'0..'D'70] # LC:['D'263..'D'312]);
+VBLANK = LC:['D'0..'D'19] # LC:['D'309..'D'312];
+RESET_LC = LC:'D'312 # RESET;
+
+COMP_SYNC = HSYNC $ VSYNC;
+

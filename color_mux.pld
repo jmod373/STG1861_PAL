@@ -1,0 +1,78 @@
+/* colour_mux.pld - Provides Colour mux capability to augment modified STG1861			*/
+/* Needs modified STG1861 that includes PAL timing and extra VBLANK, HBLANK outputs							*/
+/*									*/
+NAME		COLOURMUX;
+PARTNO		COLOURMUX;
+REVISION	A;
+DATE		9/9/24;
+DESIGNER	JM;
+COMPANY	    None;
+ASSEMBLY	PAL1862;
+LOCATION	U1;
+DEVICE		G22V10;
+                                                    
+
+/* INPUTS... */
+Pin 1 = CCLOCKI;	/* clock input to step through background connects to CCLOCKO */
+Pin 2 = RED_MEM; /* red data from colour memory */
+Pin 3 = GREEN_MEM; /* green data from colour memory */
+Pin 4 = BLUE_MEM; /* blue data from colour memory */
+Pin 5 = PIXEL; /* Pixel data from 1861 */
+Pin 6 = MCLOCK; /* Master clock to time pixels */
+Pin 7 = !CON; /* inhibits colour until HIGH, derived from either colour mem RW on HEC1802 or 6821 on ETI660 */
+pin 8 = !BACKGROUND; /* enables background otherwise no background */
+pin 9 = HBLANK; /* horizontal blank signal */
+pin 10 = VBLANK; /* vertical blanking signal */ 
+Pin 11 = !RESET;	/* global asynchronous reset			*/
+Pin 13 = TPB; /* To sequence the background step when high and combined with BKG */
+Pin 14 = BKG; /* Background change pulse combined with TPB */
+
+/* OUTPUTS... */
+Pin 23 = BLUE;	/* blue component of BACKGROUND RGB	*/
+Pin 22 = RED;	/* red component of BACKGROUND RGB	*/
+Pin 21 = GREEN;	/* green component of BACKGROUND RGB */
+Pin [20,19] = [MC0,MC1]; /* state machine for 4 states */
+Pin 15 = CCLOCKO;	/* Clock output to change background state machine	*/
+Pin 16 = RED_OUT; /* RGB OUTPUTS TO MONITOR */   
+Pin 17 = GREEN_OUT; 
+Pin 18 = BLUE_OUT;
+
+/* The main part of the GAL logic is a state machine that keeps track of */
+/* the background colour.  The state machine is, clocked by the TPB and BKG	*/
+/* A two bit register keeps	*/
+/* track of the current states and the state codes are simply assigned	*/
+/* sequentially, 0..3 to correspond with the background colour		*/
+FIELD MC = [MC0..1];	/* current state (and machine cycle)		*/
+
+/* The asynchronous reset starts us off in state zero... */
+MC.AR = RESET;  MC.SP = 'b'0;
+
+/* State machine sequence... */
+sequence MC {
+
+  /*   State 0 starts with the blue background being set	*/
+    present 'D'0
+    out BLUE;
+    default next 'D'1;
+
+  /*   State 1 is BLACK	*/
+    present 'D'1
+    default next 'D'2;
+
+  /*   State 2 is GREEN */
+    present 'D'2
+    out GREEN;
+    default next 'D'3;
+
+  /* State 3 is RED */
+   present 'D'3
+   out RED;
+   default next 'D'0;
+}
+
+BKG_ON= !PIXEL & HBLANK & VBLANK & BACKGROUND;
+RED_OUT = (PIXEL & (RED_MEM # CON)) # (BKG_ON & RED);
+GREEN_OUT =(PIXEL  & (GREEN_MEM # CON)) # (BKG_ON & GREEN);
+BLUE_OUT = (PIXEL & (BLUE_MEM # CON)) # (BKG_ON & BLUE);
+CCLOCKO = TPB & BKG;
+
