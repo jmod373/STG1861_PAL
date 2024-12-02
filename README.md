@@ -4,4 +4,5 @@ The STG1861 is a replacement for the RCA CDP1861 "Pixie" video chip.  The STG186
 This project is an initial proof of concept that builds upon the STG1861 to recreate the colour video output produced by a CDP1864.
 Video output is 192x64 to achieve the video timing of the CDP1864 rather than the 128x64 of the CDP1861.
 This is not a CDP1864 replacement as it produces the video output only, not the audio portion of the chip.
+This proof of concept uses some of the pins of the CDP1862 for the colour portion for testing on the HEC1802.
 This solution is been tested on the HEC1802 running an ETI660 ROM.
