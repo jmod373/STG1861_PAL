@@ -11,3 +11,5 @@ PAL non-interlaced mode is used and the frame timing is based on 313 lines.
 This proof of concept has been tested on the HEC1802 running an ETI660 ROM with 48x64 resolution.
 The HEC1802 requires a modification to display colour information correctly with this solution.
 The connection from Pin 21 of the CDP1822 and Address Bus 9 must be changed to Address Bus 8. 
+The HEC1801 is developed by Costas Skordis at https://github.com/cskordis/HEC1802-Color
+
